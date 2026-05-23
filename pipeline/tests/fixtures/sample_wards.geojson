@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.675, 43.570], [-79.630, 43.570], [-79.630, 43.608],
+          [-79.675, 43.608], [-79.675, 43.570]
+        ]]
+      },
+      "properties": { "WardNum": 1, "WardName": "Ward 1 - Clarkson-Lakeview", "Population": 48200 }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.675, 43.608], [-79.630, 43.608], [-79.630, 43.645],
+          [-79.675, 43.645], [-79.675, 43.608]
+        ]]
+      },
+      "properties": { "WardNum": 2, "WardName": "Ward 2 - Lakeview", "Population": 36500 }
+    }
+  ]
+}

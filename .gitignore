@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+.pytest_cache/
+
+# Go
+api/server
+api/*.test
+*.exe
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Env files (never commit secrets)
+.env
+.env.local
+*.env
+
+# Local data (pipeline output for local testing)
+local_data/
+
+# macOS
+.DS_Store
+
+# Terraform state
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/*.tfvars
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.644, 43.589] },
+      "properties": { "OBJECTID": 1, "AssetType": "Wi-Fi", "AssetName": "Civic Centre WiFi", "Status": "Active", "Operator": "City of Mississauga" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.650, 43.592] },
+      "properties": { "OBJECTID": 2, "AssetType": "Camera", "AssetName": "Traffic Cam 42", "Status": "Active", "Operator": "City of Mississauga" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.655, 43.587] },
+      "properties": { "OBJECTID": 3, "AssetType": "Air Quality", "AssetName": "AQ Sensor - Port Credit", "Status": "Active", "Operator": "Peel Region" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.648, 43.595] },
+      "properties": { "OBJECTID": 4, "AssetType": "Smart Pole", "AssetName": "Smart Pole 17", "Status": "Active", "Operator": "City of Mississauga" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.658, 43.618] },
+      "properties": { "OBJECTID": 5, "AssetType": "Weather", "AssetName": "Road Weather Station 3", "Status": "Active", "Operator": "City of Mississauga" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-79.660, 43.622] },
+      "properties": { "OBJECTID": 6, "AssetType": "Wi-Fi", "AssetName": "Library WiFi North", "Status": "Active", "Operator": "City of Mississauga" }
+    }
+  ]
+}
