@@ -10,9 +10,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
-	"github.com/owner/mississauga-smart-city/api/handlers"
-	mw "github.com/owner/mississauga-smart-city/api/middleware"
-	"github.com/owner/mississauga-smart-city/api/storage"
+	"github.com/Jonalton/mississauga-smart-city/api/handlers"
+	mw "github.com/Jonalton/mississauga-smart-city/api/middleware"
+	"github.com/Jonalton/mississauga-smart-city/api/storage"
 )
 
 func main() {

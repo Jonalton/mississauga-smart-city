@@ -1,4 +1,4 @@
-module github.com/owner/mississauga-smart-city/api
+module github.com/Jonalton/mississauga-smart-city/api
 
 go 1.22
 

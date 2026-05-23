@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/owner/mississauga-smart-city/api/models"
-	"github.com/owner/mississauga-smart-city/api/storage"
+	"github.com/Jonalton/mississauga-smart-city/api/models"
+	"github.com/Jonalton/mississauga-smart-city/api/storage"
 )
 
 const earthRadiusM = 6_371_000.0

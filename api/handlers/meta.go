@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/owner/mississauga-smart-city/api/storage"
+	"github.com/Jonalton/mississauga-smart-city/api/storage"
 )
 
 type MetaHandler struct {

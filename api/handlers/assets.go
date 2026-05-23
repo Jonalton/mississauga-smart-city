@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/owner/mississauga-smart-city/api/models"
-	"github.com/owner/mississauga-smart-city/api/storage"
+	"github.com/Jonalton/mississauga-smart-city/api/models"
+	"github.com/Jonalton/mississauga-smart-city/api/storage"
 )
 
 type AssetsHandler struct {
