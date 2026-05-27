@@ -1,74 +1,63 @@
 import { ASSET_TYPES, ASSET_LABELS, ASSET_COLORS } from '../../utils/colors'
 
-function Toggle({ on, color, onChange }) {
-  return (
-    <button
-      role="switch"
-      aria-checked={on}
-      onClick={onChange}
-      style={{
-        width: 34, height: 18, borderRadius: 9, border: 'none', padding: 0,
-        background: on ? color : '#d1d5db',
-        position: 'relative', cursor: 'pointer', flexShrink: 0,
-        transition: 'background 0.15s ease', outline: 'none',
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 2, left: on ? 16 : 2,
-        width: 14, height: 14, borderRadius: '50%',
-        background: '#fff', transition: 'left 0.15s ease',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-        display: 'block',
-      }} />
-    </button>
-  )
-}
-
 const S = {
-  section: { marginBottom: 20 },
+  section: { marginBottom: 22 },
   sectionHead: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  label: {
+  sectionLabel: {
     fontSize: 10, fontWeight: 700, color: '#9ca3af',
     textTransform: 'uppercase', letterSpacing: 0.8,
   },
-  quickLinks: { display: 'flex', gap: 8 },
+  quickLinks: { display: 'flex', gap: 10 },
   quickBtn: {
     fontSize: 10, color: '#6b7280', background: 'none', border: 'none',
     cursor: 'pointer', padding: 0, textDecoration: 'underline',
   },
-  row: {
+  checkRow: {
     display: 'flex', alignItems: 'center', gap: 9,
     padding: '6px 0', borderBottom: '1px solid #f3f4f6',
-    cursor: 'pointer',
+    cursor: 'pointer', userSelect: 'none',
   },
-  dot: (color) => ({
+  checkbox: (color) => ({
+    width: 15, height: 15, cursor: 'pointer',
+    accentColor: color, flexShrink: 0,
+    margin: 0,
+  }),
+  colorDot: (color, checked) => ({
     width: 9, height: 9, borderRadius: '50%',
     background: color, flexShrink: 0,
+    opacity: checked ? 1 : 0.25,
+    transition: 'opacity 0.15s',
   }),
-  rowLabel: (on) => ({
-    flex: 1, fontSize: 13, color: on ? '#111827' : '#9ca3af',
+  rowLabel: (checked) => ({
+    flex: 1, fontSize: 13,
+    color: checked ? '#111827' : '#9ca3af',
+    transition: 'color 0.15s',
+  }),
+  overlayRow: {
+    display: 'flex', alignItems: 'center', gap: 9,
+    padding: '6px 0', borderBottom: '1px solid #f3f4f6',
+    cursor: 'pointer', userSelect: 'none',
+  },
+  overlayIcon: { fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 },
+  overlayLabel: (checked) => ({
+    flex: 1, fontSize: 13,
+    color: checked ? '#111827' : '#9ca3af',
     transition: 'color 0.15s',
   }),
   select: {
     width: '100%', padding: '8px 10px',
     border: '1px solid #e5e7eb', borderRadius: 6,
     fontSize: 13, background: '#fafafa', color: '#374151',
-    appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
     cursor: 'pointer',
   },
-  overlayRow: {
-    display: 'flex', alignItems: 'center', gap: 9, padding: '7px 0',
-    borderBottom: '1px solid #f3f4f6',
+  clearLink: {
+    marginTop: 5, fontSize: 11, color: '#6b7280', background: 'none',
+    border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline',
+    display: 'block',
   },
-  overlayIcon: { fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 },
-  overlayLabel: (on) => ({
-    flex: 1, fontSize: 13, color: on ? '#111827' : '#9ca3af',
-    transition: 'color 0.15s',
-  }),
 }
 
 export default function FilterPanel({
@@ -79,31 +68,31 @@ export default function FilterPanel({
   showDensity, onToggleDensity,
   loading,
 }) {
-  const allOn = activeTypes.size === ASSET_TYPES.length
-
   return (
     <div>
       {/* Asset Layers */}
       <div style={S.section}>
         <div style={S.sectionHead}>
-          <span style={S.label}>Asset Layers</span>
+          <span style={S.sectionLabel}>Asset Layers</span>
           <div style={S.quickLinks}>
-            <button style={S.quickBtn} onClick={onSelectAll} disabled={allOn}>All</button>
-            <button style={S.quickBtn} onClick={onClearAll} disabled={activeTypes.size === 0}>None</button>
+            <button style={S.quickBtn} onClick={onSelectAll}>All</button>
+            <button style={S.quickBtn} onClick={onClearAll}>None</button>
           </div>
         </div>
+
         {ASSET_TYPES.map((type) => {
-          const on = activeTypes.has(type)
+          const checked = activeTypes.has(type)
           return (
-            <div
-              key={type}
-              style={S.row}
-              onClick={() => onToggleType(type)}
-            >
-              <span style={S.dot(ASSET_COLORS[type])} />
-              <span style={S.rowLabel(on)}>{ASSET_LABELS[type]}</span>
-              <Toggle on={on} color={ASSET_COLORS[type]} onChange={() => onToggleType(type)} />
-            </div>
+            <label key={type} style={S.checkRow}>
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => onToggleType(type)}
+                style={S.checkbox(ASSET_COLORS[type])}
+              />
+              <span style={S.colorDot(ASSET_COLORS[type], checked)} />
+              <span style={S.rowLabel(checked)}>{ASSET_LABELS[type]}</span>
+            </label>
           )
         })}
       </div>
@@ -111,24 +100,36 @@ export default function FilterPanel({
       {/* Map Overlays */}
       <div style={S.section}>
         <div style={S.sectionHead}>
-          <span style={S.label}>Map Overlays</span>
+          <span style={S.sectionLabel}>Map Overlays</span>
         </div>
-        <div style={S.overlayRow} onClick={onToggleHeatmap}>
+
+        <label style={S.overlayRow}>
+          <input
+            type="checkbox"
+            checked={showHeatmap}
+            onChange={onToggleHeatmap}
+            style={S.checkbox('#e67e22')}
+          />
           <span style={S.overlayIcon}>🔥</span>
           <span style={S.overlayLabel(showHeatmap)}>Asset Heatmap</span>
-          <Toggle on={showHeatmap} color="#e67e22" onChange={onToggleHeatmap} />
-        </div>
-        <div style={S.overlayRow} onClick={onToggleDensity}>
+        </label>
+
+        <label style={S.overlayRow}>
+          <input
+            type="checkbox"
+            checked={showDensity}
+            onChange={onToggleDensity}
+            style={S.checkbox('#c0392b')}
+          />
           <span style={S.overlayIcon}>🗺</span>
           <span style={S.overlayLabel(showDensity)}>Population Density</span>
-          <Toggle on={showDensity} color="#c0392b" onChange={onToggleDensity} />
-        </div>
+        </label>
       </div>
 
       {/* Ward Filter */}
       <div style={S.section}>
         <div style={S.sectionHead}>
-          <span style={S.label}>Highlight Ward</span>
+          <span style={S.sectionLabel}>Highlight Ward</span>
         </div>
         <select
           style={S.select}
@@ -146,20 +147,14 @@ export default function FilterPanel({
             ))}
         </select>
         {selectedWard && (
-          <button
-            onClick={() => onWardChange('')}
-            style={{
-              marginTop: 6, fontSize: 11, color: '#6b7280', background: 'none',
-              border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline',
-            }}
-          >
+          <button style={S.clearLink} onClick={() => onWardChange('')}>
             Clear selection
           </button>
         )}
       </div>
 
       {loading && (
-        <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', margin: '4px 0 8px' }}>
+        <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', margin: '0 0 8px' }}>
           Loading assets…
         </p>
       )}

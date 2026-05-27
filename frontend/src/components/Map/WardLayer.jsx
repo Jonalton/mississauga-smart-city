@@ -7,11 +7,9 @@ const LABEL_LAYER_ID = 'ward-labels'
 const HIGHLIGHT_FILL_ID = 'ward-highlight-fill'
 const HIGHLIGHT_LINE_ID = 'ward-highlight-line'
 
-// Filter that matches no feature — used to hide highlight layers when nothing is selected
 const NO_MATCH = ['==', ['get', 'ward_id'], -1]
 
 export default function WardLayer({ map, boundaries, scores, selectedWard }) {
-  // Initialize all layers once
   useEffect(() => {
     if (!map || !boundaries || !scores) return
 
@@ -31,6 +29,10 @@ export default function WardLayer({ map, boundaries, scores, selectedWard }) {
 
     map.addSource(SOURCE_ID, { type: 'geojson', data: enriched })
 
+    // Ward fill — equity score choropleth
+    // Insert before asset-circles only if that layer already exists; otherwise append
+    const assetLayer = map.getLayer('asset-circles') ? 'asset-circles' : undefined
+
     map.addLayer(
       {
         id: FILL_LAYER_ID,
@@ -41,32 +43,37 @@ export default function WardLayer({ map, boundaries, scores, selectedWard }) {
             'interpolate', ['linear'], ['get', 'equity_score'],
             0, '#e74c3c', 50, '#f39c12', 100, '#27ae60',
           ],
-          'fill-opacity': 0.3,
+          'fill-opacity': 0.28,
         },
       },
-      'asset-circles',
+      assetLayer,
     )
 
+    // Ward boundary lines — always visible, drawn over the fill
     map.addLayer(
       {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
-        paint: { 'line-color': '#6b7280', 'line-width': 1, 'line-opacity': 0.55 },
+        paint: {
+          'line-color': '#374151',
+          'line-width': 1.5,
+          'line-opacity': 0.75,
+        },
       },
-      'asset-circles',
+      assetLayer,
     )
 
-    // Highlight layers — initially hidden
+    // Highlight layers (initially hidden — shown when a ward is selected)
     map.addLayer(
       {
         id: HIGHLIGHT_FILL_ID,
         type: 'fill',
         source: SOURCE_ID,
         filter: NO_MATCH,
-        paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.18 },
+        paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.2 },
       },
-      'asset-circles',
+      assetLayer,
     )
 
     map.addLayer(
@@ -75,11 +82,12 @@ export default function WardLayer({ map, boundaries, scores, selectedWard }) {
         type: 'line',
         source: SOURCE_ID,
         filter: NO_MATCH,
-        paint: { 'line-color': '#1a3a5c', 'line-width': 3, 'line-opacity': 1 },
+        paint: { 'line-color': '#1a3a5c', 'line-width': 3.5, 'line-opacity': 1 },
       },
-      'asset-circles',
+      assetLayer,
     )
 
+    // Ward labels — always on top of all ward layers
     map.addLayer({
       id: LABEL_LAYER_ID,
       type: 'symbol',
@@ -98,14 +106,14 @@ export default function WardLayer({ map, boundaries, scores, selectedWard }) {
     })
 
     return () => {
-      ;[LABEL_LAYER_ID, HIGHLIGHT_LINE_ID, HIGHLIGHT_FILL_ID, LINE_LAYER_ID, FILL_LAYER_ID].forEach((id) => {
-        if (map.getLayer(id)) map.removeLayer(id)
-      })
+      ;[LABEL_LAYER_ID, HIGHLIGHT_LINE_ID, HIGHLIGHT_FILL_ID, LINE_LAYER_ID, FILL_LAYER_ID].forEach(
+        (id) => { if (map.getLayer(id)) map.removeLayer(id) },
+      )
       if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
     }
   }, [map, boundaries, scores])
 
-  // Update highlight when selectedWard changes — no layer re-init needed
+  // Update highlight filter whenever selectedWard changes
   useEffect(() => {
     if (!map || !map.getLayer(HIGHLIGHT_LINE_ID)) return
     const filter = selectedWard
