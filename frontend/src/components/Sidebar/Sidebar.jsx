@@ -13,8 +13,14 @@ const S = {
     padding: '14px 16px 10px',
     flexShrink: 0,
   },
+  headerTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   title: { fontSize: 15, fontWeight: 700, margin: 0 },
   subtitle: { fontSize: 11, opacity: 0.75, margin: '2px 0 0' },
+  sourcesBtn: {
+    fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
+    background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+    color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8, flexShrink: 0,
+  },
   nav: {
     display: 'flex', borderBottom: '1px solid #e8e8e8',
     flexShrink: 0,
@@ -41,12 +47,18 @@ const S = {
 
 export default function Sidebar({
   filters, onFiltersChange, wardScores, view, onViewChange,
-  showHeatmap, onToggleHeatmap, onNearbyMe, assetsLoading,
+  showHeatmap, onToggleHeatmap, showDensity, onToggleDensity,
+  onNearbyMe, assetsLoading,
 }) {
   return (
     <div style={S.sidebar}>
       <div style={S.header}>
-        <p style={S.title}>Mississauga Smart City Monitor</p>
+        <div style={S.headerTop}>
+          <p style={S.title}>Mississauga Smart City Monitor</p>
+          <button style={S.sourcesBtn} onClick={() => onViewChange('sources')}>
+            Data Sources
+          </button>
+        </div>
         <p style={S.subtitle}>Infrastructure equity across 11 wards</p>
       </div>
 
@@ -80,6 +92,12 @@ export default function Sidebar({
           onClick={onToggleHeatmap}
         >
           {showHeatmap ? 'Heatmap On' : 'Heatmap Off'}
+        </button>
+        <button
+          style={{ ...S.btn('secondary'), background: showDensity ? '#fef3c7' : '#f0f0f0' }}
+          onClick={onToggleDensity}
+        >
+          {showDensity ? 'Density On' : 'Density Off'}
         </button>
       </div>
     </div>

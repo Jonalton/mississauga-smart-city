@@ -19,6 +19,12 @@ DATASET_URLS: dict[str, str] = {
     "census": f"{ARCGIS_BASE}/Ward_2016Census/FeatureServer/0",
     # Active Development Applications — used in Phase 2A enrichment
     "development_applications": f"{ARCGIS_BASE}/GrowthManagementActiveDevelopmentApplications/FeatureServer/0",
+    # Traffic signals from ATMS (Advanced Traffic Management System) — 803 signalized intersections
+    "traffic_signals": f"{ARCGIS_BASE}/TrafficSignals_ATMS/FeatureServer/0",
+    # MiWay transit stops — 3,323 bus stops with accessibility flags
+    "transit_stops": f"{ARCGIS_BASE}/MiWay_Transit_Stop/FeatureServer/0",
+    # 2016 Census by Neighbourhood (shapefile) — 43 sub-ward polygons with geometry + demographics
+    "neighbourhood_census": f"{ARCGIS_BASE}/2016_Census_Data_By_Neighbourhoods_Shape_File/FeatureServer/0",
 }
 
 _GEOJSON_PARAMS = {

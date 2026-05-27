@@ -35,6 +35,7 @@ func main() {
 	wards := &handlers.WardsHandler{Store: store}
 	nearby := &handlers.NearbyHandler{Store: store}
 	meta := &handlers.MetaHandler{Store: store}
+	neighbourhoods := &handlers.NeighbourhoodsHandler{Store: store}
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
@@ -52,6 +53,7 @@ func main() {
 	r.Get("/api/wards/{id}", wards.ByID)
 	r.Get("/api/nearby", nearby.ServeHTTP)
 	r.Get("/api/meta", meta.ServeHTTP)
+	r.Get("/api/neighbourhoods", neighbourhoods.ServeHTTP)
 
 	port := os.Getenv("PORT")
 	if port == "" {

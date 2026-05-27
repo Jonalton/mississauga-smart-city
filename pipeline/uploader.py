@@ -28,6 +28,7 @@ def upload_outputs(
     ward_scores: list[dict],
     joined_geojson: dict,
     ward_boundaries_geojson: dict,
+    neighbourhood_geojson: dict,
     metadata: dict,
     *,
     snapshot: bool = True,
@@ -41,6 +42,7 @@ def upload_outputs(
         "ward_scores.json": (json.dumps(ward_scores).encode(), "application/json"),
         "joined_data.geojson": (json.dumps(joined_geojson).encode(), "application/geo+json"),
         "ward_boundaries.geojson": (json.dumps(ward_boundaries_geojson).encode(), "application/geo+json"),
+        "neighbourhood_census.geojson": (json.dumps(neighbourhood_geojson).encode(), "application/geo+json"),
         "metadata.json": (json.dumps(metadata).encode(), "application/json"),
     }
 

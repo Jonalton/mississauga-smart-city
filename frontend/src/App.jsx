@@ -3,25 +3,30 @@ import Map from './components/Map/Map'
 import AssetLayer from './components/Map/AssetLayer'
 import WardLayer from './components/Map/WardLayer'
 import HeatmapLayer from './components/Map/HeatmapLayer'
+import NeighbourhoodLayer from './components/Map/NeighbourhoodLayer'
 import Sidebar from './components/Sidebar/Sidebar'
 import WardDashboard from './components/WardDashboard/WardDashboard'
+import SourcesPage from './components/SourcesPage/SourcesPage'
 import NearbyView from './components/NearbyView/NearbyView'
 import { useAssets } from './hooks/useAssets'
 import { useWardScores } from './hooks/useWardScores'
 import { useWardBoundaries } from './hooks/useWardBoundaries'
 import { useMeta } from './hooks/useMeta'
+import { useNeighbourhoods } from './hooks/useNeighbourhoods'
 
 export default function App() {
   const [filters, setFilters] = useState({ type: '', ward: '' })
   const [view, setView] = useState('map') // 'map' | 'dashboard'
   const [mapInstance, setMapInstance] = useState(null)
   const [showHeatmap, setShowHeatmap] = useState(false)
+  const [showDensity, setShowDensity] = useState(false)
   const [nearbyCoords, setNearbyCoords] = useState(null)
 
   const { data: assets, loading: assetsLoading, error: assetsError, refetch } = useAssets(filters)
   const { data: wardScores } = useWardScores()
   const { data: wardBoundaries } = useWardBoundaries()
   const { isStale } = useMeta()
+  const { data: neighbourhoods } = useNeighbourhoods()
 
   const handleNearbyMe = useCallback(() => {
     navigator.geolocation.getCurrentPosition(
@@ -51,9 +56,14 @@ export default function App() {
           {mapInstance && showHeatmap && assets && (
             <HeatmapLayer map={mapInstance} featureCollection={assets} />
           )}
+          {mapInstance && showDensity && neighbourhoods && (
+            <NeighbourhoodLayer map={mapInstance} geojson={neighbourhoods} />
+          )}
         </>
-      ) : (
+      ) : view === 'dashboard' ? (
         <WardDashboard scores={wardScores} onClose={() => setView('map')} />
+      ) : (
+        <SourcesPage onClose={() => setView('map')} />
       )}
 
       {assetsError && (
@@ -71,6 +81,8 @@ export default function App() {
         onViewChange={setView}
         showHeatmap={showHeatmap}
         onToggleHeatmap={() => setShowHeatmap((h) => !h)}
+        showDensity={showDensity}
+        onToggleDensity={() => setShowDensity((d) => !d)}
         onNearbyMe={handleNearbyMe}
         assetsLoading={assetsLoading}
       />

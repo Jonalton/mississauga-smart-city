@@ -4,6 +4,7 @@ import { equityScoreColor, equityScoreOpacity } from '../../utils/colors'
 const SOURCE_ID = 'ward-boundaries'
 const FILL_LAYER_ID = 'ward-fill'
 const LINE_LAYER_ID = 'ward-outline'
+const LABEL_LAYER_ID = 'ward-labels'
 
 export default function WardLayer({ map, boundaries, scores }) {
   useEffect(() => {
@@ -59,8 +60,26 @@ export default function WardLayer({ map, boundaries, scores }) {
       'asset-circles',
     )
 
+    map.addLayer({
+      id: LABEL_LAYER_ID,
+      type: 'symbol',
+      source: SOURCE_ID,
+      layout: {
+        'text-field': ['concat', 'Ward ', ['to-string', ['get', 'ward_id']]],
+        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 9, 11, 13, 15],
+        'text-allow-overlap': false,
+        'text-ignore-placement': false,
+      },
+      paint: {
+        'text-color': '#222',
+        'text-halo-color': 'rgba(255,255,255,0.85)',
+        'text-halo-width': 2,
+      },
+    })
+
     return () => {
-      ;[LINE_LAYER_ID, FILL_LAYER_ID].forEach((id) => {
+      ;[LABEL_LAYER_ID, LINE_LAYER_ID, FILL_LAYER_ID].forEach((id) => {
         if (map.getLayer(id)) map.removeLayer(id)
       })
       if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)

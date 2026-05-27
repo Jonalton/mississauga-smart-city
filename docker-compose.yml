@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   fake-gcs:
     image: fsouza/fake-gcs-server:latest
@@ -19,7 +17,7 @@ services:
       - "8080:8080"
     environment:
       - GCS_BUCKET_NAME=mississauga-smart-city-data
-      - STORAGE_EMULATOR_HOST=http://fake-gcs:4443
+      - STORAGE_EMULATOR_HOST=fake-gcs:4443
       - GOOGLE_CLOUD_PROJECT=local-dev
       - PORT=8080
       - CACHE_REFRESH_MINUTES=5

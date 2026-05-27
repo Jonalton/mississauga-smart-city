@@ -10,7 +10,7 @@ from shapely.geometry import Point, MultiPoint
 logger = logging.getLogger(__name__)
 
 # Canonical asset types used across the whole system
-CANONICAL_TYPES = ["wifi", "camera", "smart_pole", "air_quality", "weather", "other"]
+CANONICAL_TYPES = ["wifi", "camera", "smart_pole", "air_quality", "weather", "traffic_signal", "transit_stop", "other"]
 
 # Map keywords in the WiFi DESCRIPT field to canonical types.
 # These are public WiFi hotspot locations — mostly libraries, community centres, arenas.
@@ -134,6 +134,131 @@ def load_census_population(geojson: dict) -> dict[int, int]:
     return pop
 
 
+def load_neighbourhood_census(geojson: dict) -> gpd.GeoDataFrame:
+    """
+    Load 2016 Neighbourhoods Census — 43 sub-ward polygons with demographic data.
+
+    Computes population density (persons/km²) by projecting geometry to UTM 17N.
+    Key fields retained: population, density, transit/drive commute %, median income,
+    visible minority %, low income count and percent.
+    """
+    gdf = gpd.GeoDataFrame.from_features(geojson["features"], crs="EPSG:4326")
+
+    # Compute area in km² using UTM 17N projection (accurate for Ontario)
+    gdf_proj = gdf.to_crs("EPSG:32617")
+    area_km2 = (gdf_proj.geometry.area / 1e6).round(3)
+
+    # Field names from 2016_Census_Data_By_Neighbourhoods_Shape_File (shapefile truncation applies)
+    gdf["neighbourhood"] = gdf["CENTROID"].fillna("Unknown")
+    gdf["population"] = pd.to_numeric(gdf["Pop_"], errors="coerce").fillna(0).astype(int)
+    gdf["area_km2"] = area_km2.values  # avoid index misalignment
+    gdf["pop_density"] = (gdf["population"] / area_km2.replace(0, float("nan")).values).round(1).fillna(0)
+
+    gdf["transit_commute_pct"] = pd.to_numeric(gdf.get("CTW_PT_P"), errors="coerce").round(1).fillna(0)
+    # CTW_CTV__1 = drive commute % (shapefile truncation of CTW_CTV_Driv_P)
+    gdf["drive_commute_pct"] = pd.to_numeric(gdf.get("CTW_CTV__1"), errors="coerce").round(1).fillna(0)
+    gdf["median_income"] = pd.to_numeric(gdf.get("IncMa_MED"), errors="coerce").fillna(0).astype(int)
+    # Vis_Minor_ = visible minority % (shapefile truncation of Vis_Minor_P)
+    gdf["visible_minority_pct"] = pd.to_numeric(gdf.get("Vis_Minor_"), errors="coerce").round(1).fillna(0)
+
+    low_income = pd.to_numeric(gdf.get("LIM_1"), errors="coerce").fillna(0)
+    low_income_base = pd.to_numeric(gdf.get("LF_LIM_15"), errors="coerce").replace(0, float("nan"))
+    gdf["low_income_count"] = low_income.astype(int)
+    gdf["low_income_pct"] = (low_income / low_income_base * 100).round(1).fillna(0)
+
+    keep = [
+        "geometry", "neighbourhood", "population", "area_km2", "pop_density",
+        "transit_commute_pct", "drive_commute_pct", "median_income",
+        "visible_minority_pct", "low_income_count", "low_income_pct",
+    ]
+    return gdf[keep].copy()
+
+
+def load_traffic_signals(geojson: dict) -> gpd.GeoDataFrame:
+    """
+    Load TrafficSignals_ATMS — 803 signalized intersections from Mississauga's ATMS network.
+
+    Fields used: OBJECTID, UNITDESC (intersection name), STATUS (OPEN/CLOSED),
+    OWNER_FK (MISS=city, HWY=provincial), COMMTYPE (APN=fiber-networked), CCTV.
+    """
+    rows = []
+    for feature in geojson.get("features", []):
+        props = feature.get("properties") or {}
+        geom = feature.get("geometry")
+        if not geom or geom.get("type") != "Point":
+            continue
+        coords = geom.get("coordinates", [])
+        if len(coords) < 2:
+            continue
+
+        obj_id = props.get("OBJECTID", "")
+        name = props.get("UNITDESC") or f"Signal {obj_id}"
+        status = "active" if str(props.get("STATUS", "")).upper() == "OPEN" else "inactive"
+        owner = props.get("OWNER_FK") or "MISS"
+        comm = props.get("COMMTYPE") or ""
+
+        rows.append({
+            "geometry": Point(coords[0], coords[1]),
+            "asset_id": f"signal_{obj_id}",
+            "asset_name": name,
+            "asset_type": "traffic_signal",
+            "status": status,
+            "install_date": None,
+            "operator": "City of Mississauga" if owner == "MISS" else owner,
+            "raw_type": f"Traffic Signal ({comm})" if comm else "Traffic Signal",
+        })
+
+    if not rows:
+        logger.warning("No traffic signal features loaded")
+        return gpd.GeoDataFrame(columns=["geometry", "asset_id", "asset_name", "asset_type",
+                                          "status", "install_date", "operator", "raw_type"],
+                                crs="EPSG:4326")
+
+    return gpd.GeoDataFrame(rows, crs="EPSG:4326")
+
+
+def load_transit_stops(geojson: dict) -> gpd.GeoDataFrame:
+    """
+    Load MiWay_Transit_Stop — 3,323 bus stops with accessibility and zone data.
+
+    Fields used: stp_identi (stop ID), stp_descri (location description),
+    stp_access ('1'=accessible), stp_distri (district), stp_zone (fare zone).
+    """
+    rows = []
+    for feature in geojson.get("features", []):
+        props = feature.get("properties") or {}
+        geom = feature.get("geometry")
+        if not geom or geom.get("type") != "Point":
+            continue
+        coords = geom.get("coordinates", [])
+        if len(coords) < 2:
+            continue
+
+        stop_id = props.get("stp_identi") or props.get("OBJECTID", "")
+        description = props.get("stp_descri") or f"Stop {stop_id}"
+        accessible = str(props.get("stp_access", "")) == "1"
+        zone = props.get("stp_zone") or ""
+
+        rows.append({
+            "geometry": Point(coords[0], coords[1]),
+            "asset_id": f"transit_{stop_id}",
+            "asset_name": description,
+            "asset_type": "transit_stop",
+            "status": "active" if accessible else "limited",
+            "install_date": None,
+            "operator": "MiWay",
+            "raw_type": f"Transit Stop Zone {zone}" if zone else "Transit Stop",
+        })
+
+    if not rows:
+        logger.warning("No transit stop features loaded")
+        return gpd.GeoDataFrame(columns=["geometry", "asset_id", "asset_name", "asset_type",
+                                          "status", "install_date", "operator", "raw_type"],
+                                crs="EPSG:4326")
+
+    return gpd.GeoDataFrame(rows, crs="EPSG:4326")
+
+
 def spatial_join(assets: gpd.GeoDataFrame, wards: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     joined = gpd.sjoin(
         assets,
@@ -150,11 +275,14 @@ def spatial_join(assets: gpd.GeoDataFrame, wards: gpd.GeoDataFrame) -> gpd.GeoDa
 def _compute_gap_flags(row: pd.Series) -> list[str]:
     flags = []
     breakdown: dict = row["type_breakdown"]
-    # For current dataset (WiFi only), check for critically low coverage
-    if row["asset_per_1k_residents"] < 0.05:
+    if row["asset_per_1k_residents"] < 0.3:
         flags.append("critically_low_coverage")
     if breakdown.get("wifi", 0) == 0:
         flags.append("no_public_wifi")
+    if breakdown.get("transit_stop", 0) == 0:
+        flags.append("no_transit_stops")
+    if breakdown.get("traffic_signal", 0) == 0:
+        flags.append("no_traffic_signals")
     return flags
 
 

@@ -9,7 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"cloud.google.com/go/storage"
+	gcs "cloud.google.com/go/storage"
+	"google.golang.org/api/option"
 )
 
 // Store holds GCS blobs in memory and refreshes them on a background timer.
@@ -18,7 +19,7 @@ type Store struct {
 	mu     sync.RWMutex
 	blobs  map[string][]byte
 	bucket string
-	client *storage.Client
+	client *gcs.Client
 }
 
 var blobNames = []string{
@@ -26,11 +27,20 @@ var blobNames = []string{
 	"ward_scores.json",
 	"joined_data.geojson",
 	"ward_boundaries.geojson",
+	"neighbourhood_census.geojson",
 	"metadata.json",
 }
 
 func New(ctx context.Context) (*Store, error) {
-	client, err := storage.NewClient(ctx)
+	var opts []option.ClientOption
+	if host := os.Getenv("STORAGE_EMULATOR_HOST"); host != "" {
+		opts = append(opts,
+			option.WithEndpoint("http://"+host+"/storage/v1/"),
+			option.WithoutAuthentication(),
+			gcs.WithJSONReads(),
+		)
+	}
+	client, err := gcs.NewClient(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("storage.NewClient: %w", err)
 	}
@@ -89,7 +99,7 @@ func (s *Store) refresh(ctx context.Context) error {
 	return nil
 }
 
-func readBlob(ctx context.Context, bkt *storage.BucketHandle, name string) ([]byte, error) {
+func readBlob(ctx context.Context, bkt *gcs.BucketHandle, name string) ([]byte, error) {
 	r, err := bkt.Object(name).NewReader(ctx)
 	if err != nil {
 		return nil, err
