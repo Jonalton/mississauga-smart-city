@@ -49,16 +49,16 @@ export default function WardLayer({ map, boundaries, scores, selectedWard }) {
       assetLayer,
     )
 
-    // Ward boundary lines — always visible, drawn over the fill
+    // Ward boundary lines — bold, always visible, drawn over the fill
     map.addLayer(
       {
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
         paint: {
-          'line-color': '#374151',
-          'line-width': 1.5,
-          'line-opacity': 0.75,
+          'line-color': '#0f172a',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 8, 2.5, 13, 4.5],
+          'line-opacity': 1,
         },
       },
       assetLayer,
