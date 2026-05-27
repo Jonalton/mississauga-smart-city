@@ -5,49 +5,55 @@ const S = {
   sidebar: {
     position: 'absolute', top: 0, left: 0, bottom: 0,
     width: 320, zIndex: 100,
-    background: '#fff', boxShadow: '2px 0 12px rgba(0,0,0,0.15)',
+    background: '#fff', boxShadow: '2px 0 12px rgba(0,0,0,0.12)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
   },
   header: {
     background: '#1a3a5c', color: '#fff',
-    padding: '14px 16px 10px',
-    flexShrink: 0,
+    padding: '12px 14px 10px', flexShrink: 0,
   },
-  headerTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { fontSize: 15, fontWeight: 700, margin: 0 },
-  subtitle: { fontSize: 11, opacity: 0.75, margin: '2px 0 0' },
+  headerTop: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+  },
+  title: { fontSize: 14, fontWeight: 700, margin: 0, lineHeight: 1.3 },
+  subtitle: { fontSize: 11, opacity: 0.65, margin: '3px 0 0' },
   sourcesBtn: {
     fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
     background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-    color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8, flexShrink: 0,
+    color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+    marginLeft: 8, flexShrink: 0, marginTop: 1,
   },
   nav: {
-    display: 'flex', borderBottom: '1px solid #e8e8e8',
-    flexShrink: 0,
+    display: 'flex', borderBottom: '1px solid #e5e7eb', flexShrink: 0,
   },
   navBtn: (active) => ({
-    flex: 1, padding: '10px 8px', border: 'none', cursor: 'pointer',
+    flex: 1, padding: '9px 8px', border: 'none', cursor: 'pointer',
     background: active ? '#f0f6ff' : '#fff',
-    color: active ? '#1a3a5c' : '#666',
-    fontWeight: active ? 600 : 400, fontSize: 13,
+    color: active ? '#1a3a5c' : '#6b7280',
+    fontWeight: active ? 600 : 400, fontSize: 12,
     borderBottom: active ? '2px solid #1a3a5c' : '2px solid transparent',
+    transition: 'all 0.1s',
   }),
-  body: { flex: 1, overflowY: 'auto', padding: '12px' },
-  footer: {
-    padding: '10px 12px', borderTop: '1px solid #e8e8e8',
-    display: 'flex', gap: 8, flexShrink: 0,
+  body: {
+    flex: 1, overflowY: 'auto', padding: '14px 14px 0',
+    scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent',
   },
-  btn: (variant) => ({
-    flex: 1, padding: '9px 12px', border: 'none', borderRadius: 6,
-    cursor: 'pointer', fontSize: 13, fontWeight: 500,
-    background: variant === 'primary' ? '#1a3a5c' : '#f0f0f0',
-    color: variant === 'primary' ? '#fff' : '#333',
-  }),
+  footer: {
+    padding: '10px 14px', borderTop: '1px solid #e5e7eb', flexShrink: 0,
+  },
+  nearbyBtn: {
+    width: '100%', padding: '10px', border: 'none', borderRadius: 7,
+    cursor: 'pointer', fontSize: 13, fontWeight: 600,
+    background: '#1a3a5c', color: '#fff',
+  },
 }
 
 export default function Sidebar({
-  filters, onFiltersChange, wardScores, view, onViewChange,
-  showHeatmap, onToggleHeatmap, showDensity, onToggleDensity,
+  activeTypes, onToggleType, onSelectAll, onClearAll,
+  selectedWard, onWardChange,
+  wardScores, view, onViewChange,
+  showHeatmap, onToggleHeatmap,
+  showDensity, onToggleDensity,
   onNearbyMe, assetsLoading,
 }) {
   return (
@@ -73,31 +79,25 @@ export default function Sidebar({
 
       <div style={S.body}>
         <FilterPanel
-          filters={filters}
-          onFiltersChange={onFiltersChange}
+          activeTypes={activeTypes}
+          onToggleType={onToggleType}
+          onSelectAll={onSelectAll}
+          onClearAll={onClearAll}
+          selectedWard={selectedWard}
+          onWardChange={onWardChange}
           wardScores={wardScores}
           showHeatmap={showHeatmap}
           onToggleHeatmap={onToggleHeatmap}
+          showDensity={showDensity}
+          onToggleDensity={onToggleDensity}
           loading={assetsLoading}
         />
         <InsightCards wardScores={wardScores} />
       </div>
 
       <div style={S.footer}>
-        <button style={S.btn('primary')} onClick={onNearbyMe}>
+        <button style={S.nearbyBtn} onClick={onNearbyMe}>
           📍 What's Near Me
-        </button>
-        <button
-          style={{ ...S.btn('secondary'), background: showHeatmap ? '#dbeafe' : '#f0f0f0' }}
-          onClick={onToggleHeatmap}
-        >
-          {showHeatmap ? 'Heatmap On' : 'Heatmap Off'}
-        </button>
-        <button
-          style={{ ...S.btn('secondary'), background: showDensity ? '#fef3c7' : '#f0f0f0' }}
-          onClick={onToggleDensity}
-        >
-          {showDensity ? 'Density On' : 'Density Off'}
         </button>
       </div>
     </div>

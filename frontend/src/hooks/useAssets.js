@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { API_BASE } from '../config'
 
-export function useAssets(filters = {}) {
+export function useAssets() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -15,11 +15,7 @@ export function useAssets(filters = {}) {
     setLoading(true)
     setError(null)
     try {
-      const params = new URLSearchParams()
-      if (filters.type) params.set('type', filters.type)
-      if (filters.ward) params.set('ward', String(filters.ward))
-      if (filters.bbox) params.set('bbox', filters.bbox)
-      const res = await fetch(`${API_BASE}/api/assets?${params}`, { signal: ctrl.signal })
+      const res = await fetch(`${API_BASE}/api/assets`, { signal: ctrl.signal })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setData(await res.json())
     } catch (e) {
@@ -27,7 +23,7 @@ export function useAssets(filters = {}) {
     } finally {
       setLoading(false)
     }
-  }, [filters.type, filters.ward, filters.bbox])
+  }, [])
 
   useEffect(() => { load() }, [load])
 

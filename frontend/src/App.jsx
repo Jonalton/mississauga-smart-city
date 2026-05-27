@@ -13,20 +13,61 @@ import { useWardScores } from './hooks/useWardScores'
 import { useWardBoundaries } from './hooks/useWardBoundaries'
 import { useMeta } from './hooks/useMeta'
 import { useNeighbourhoods } from './hooks/useNeighbourhoods'
+import { ASSET_TYPES } from './utils/colors'
+
+function wardBounds(feature) {
+  const rings = feature.geometry.type === 'MultiPolygon'
+    ? feature.geometry.coordinates.flat(1)
+    : feature.geometry.coordinates
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity
+  for (const ring of rings) {
+    for (const [lng, lat] of ring) {
+      if (lng < minLng) minLng = lng
+      if (lat < minLat) minLat = lat
+      if (lng > maxLng) maxLng = lng
+      if (lat > maxLat) maxLat = lat
+    }
+  }
+  return [[minLng, minLat], [maxLng, maxLat]]
+}
 
 export default function App() {
-  const [filters, setFilters] = useState({ type: '', ward: '' })
-  const [view, setView] = useState('map') // 'map' | 'dashboard'
+  const [view, setView] = useState('map')
   const [mapInstance, setMapInstance] = useState(null)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showDensity, setShowDensity] = useState(false)
+  const [activeTypes, setActiveTypes] = useState(new Set(ASSET_TYPES))
+  const [selectedWard, setSelectedWard] = useState('')
   const [nearbyCoords, setNearbyCoords] = useState(null)
 
-  const { data: assets, loading: assetsLoading, error: assetsError, refetch } = useAssets(filters)
+  // Fetch all assets (no type filter — handled client-side via MapLibre setFilter)
+  const { data: assets, loading: assetsLoading, error: assetsError, refetch } = useAssets()
   const { data: wardScores } = useWardScores()
   const { data: wardBoundaries } = useWardBoundaries()
   const { isStale } = useMeta()
   const { data: neighbourhoods } = useNeighbourhoods()
+
+  const handleToggleType = useCallback((type) => {
+    setActiveTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+  }, [])
+
+  const handleSelectAll = useCallback(() => setActiveTypes(new Set(ASSET_TYPES)), [])
+  const handleClearAll = useCallback(() => setActiveTypes(new Set()), [])
+
+  const handleWardChange = useCallback((wardId) => {
+    setSelectedWard(wardId)
+    if (!wardId || !mapInstance || !wardBoundaries) return
+    const feature = wardBoundaries.features.find(
+      (f) => String(f.properties.ward_id) === String(wardId),
+    )
+    if (!feature) return
+    mapInstance.fitBounds(wardBounds(feature), { padding: 60, duration: 700 })
+  }, [mapInstance, wardBoundaries])
 
   const handleNearbyMe = useCallback(() => {
     navigator.geolocation.getCurrentPosition(
@@ -48,10 +89,19 @@ export default function App() {
         <>
           <Map onMapReady={setMapInstance} />
           {mapInstance && assets && (
-            <AssetLayer map={mapInstance} featureCollection={assets} filters={filters} />
+            <AssetLayer
+              map={mapInstance}
+              featureCollection={assets}
+              activeTypes={activeTypes}
+            />
           )}
           {mapInstance && wardBoundaries && wardScores && (
-            <WardLayer map={mapInstance} boundaries={wardBoundaries} scores={wardScores} />
+            <WardLayer
+              map={mapInstance}
+              boundaries={wardBoundaries}
+              scores={wardScores}
+              selectedWard={selectedWard}
+            />
           )}
           {mapInstance && showHeatmap && assets && (
             <HeatmapLayer map={mapInstance} featureCollection={assets} />
@@ -74,8 +124,12 @@ export default function App() {
       )}
 
       <Sidebar
-        filters={filters}
-        onFiltersChange={setFilters}
+        activeTypes={activeTypes}
+        onToggleType={handleToggleType}
+        onSelectAll={handleSelectAll}
+        onClearAll={handleClearAll}
+        selectedWard={selectedWard}
+        onWardChange={handleWardChange}
         wardScores={wardScores}
         view={view}
         onViewChange={setView}
@@ -88,10 +142,7 @@ export default function App() {
       />
 
       {nearbyCoords && (
-        <NearbyView
-          coords={nearbyCoords}
-          onClose={() => setNearbyCoords(null)}
-        />
+        <NearbyView coords={nearbyCoords} onClose={() => setNearbyCoords(null)} />
       )}
     </div>
   )
